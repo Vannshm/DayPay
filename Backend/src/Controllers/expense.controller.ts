@@ -2,6 +2,7 @@ import { expenseModel } from "../Models/addExpense.model.js";
 import type { RequestHandler } from "express";
 import { getQuerryString, parseDateOnly } from "../Utils/request-handeler.js";
 import { title } from "node:process";
+import mongoose from "mongoose";
 
 export const addExpense: RequestHandler = async (req, res) => {
   const { title, amount, category, date, note, paymentMethod } = req.body;
@@ -416,3 +417,98 @@ export const searchExpense: RequestHandler = async (req, res) => {
     });
   }
 };
+
+export const dashBoardExpenseCount: RequestHandler = async (req, res) => {
+  try {
+    const summary = await expenseModel.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.user!.id),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalExpense: { $sum: "$amount" },
+          expenseCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    if (!summary) {
+      return res.status(404).json({
+        message: "Something went wrong!",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Expense summary fetched successfully",
+      totalExpenses: summary[0]?.totalExpense ?? 0,
+      expenseCount: summary[0]?.expenseCount ?? 0,
+    });
+  } catch (err) {
+    console.error("Search expenses error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
+
+export const getMonthlySpendingSummary: RequestHandler = async(req,res)=>{
+  try{
+
+      const summary = await expenseModel.aggregate([
+        {
+          $match:{
+            userId:new mongoose.Types.ObjectId(req.user!.id)
+          }
+        },
+        {
+          $group:{
+            _id:{
+              year:{$year:'$date'},
+              month:{$month:'$date'}
+            },
+            monthlySpending:{$sum:'$amount'},
+            expenseCount:{$sum:1}
+          }
+        },
+        {
+          $sort:{
+            "_id.year":1,
+            "_id.month":1
+          }
+        },
+        {
+          $project:{
+            _id:0,
+            year:"$_id.year",
+            month:"$_id.month",
+            monthlySpending:1,
+            expenseCount:1
+          }
+        }
+      ])
+
+      if(!summary){
+        return res.status(404).json({
+          message:'something went wrong!'
+        })
+      }
+
+      return res.status(200).json({
+        message:'Monthly spending summary fetched successfully',
+        summary
+      })
+
+  }catch(err){
+        console.error("Search expenses error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+}
