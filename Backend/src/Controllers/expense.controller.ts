@@ -1,5 +1,6 @@
 import { expenseModel } from "../Models/addExpense.model.js";
 import type { RequestHandler } from "express";
+import { getQuerryString , parseDateOnly } from '../Utils/request-handeler.js'
 
 export const addExpense: RequestHandler = async (req, res) => {
   const { title, amount, category, date, note, paymentMethod } = req.body;
@@ -122,30 +123,6 @@ export const deleteExpense: RequestHandler = async (req, res) => {
 };
 
 //*************************************************************** */
-
-const getQuerryString = (value: unknown): string | undefined => {
-  if (typeof value !== "string" || value.trim() === "") {
-    return undefined;
-  }
-  return value.trim();
-};
-
-const parseDateOnly = (value: string): Date | null => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return null;
-  }
-
-  const date = new Date(`${value}T00:00:00.000Z`);
-
-  if (
-    Number.isNaN(date.getTime()) ||
-    date.toISOString().slice(0, 10) !== value
-  ) {
-    return null;
-  }
-
-  return date;
-};
 
 export const getFilterExpenses: RequestHandler = async (req, res) => {
   try {
