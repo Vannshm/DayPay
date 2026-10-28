@@ -1,6 +1,7 @@
 import { expenseModel } from "../Models/addExpense.model.js";
 import type { RequestHandler } from "express";
-import { getQuerryString , parseDateOnly } from '../Utils/request-handeler.js'
+import { getQuerryString, parseDateOnly } from "../Utils/request-handeler.js";
+import { title } from "node:process";
 
 export const addExpense: RequestHandler = async (req, res) => {
   const { title, amount, category, date, note, paymentMethod } = req.body;
@@ -121,8 +122,6 @@ export const deleteExpense: RequestHandler = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-//*************************************************************** */
 
 export const getFilterExpenses: RequestHandler = async (req, res) => {
   try {
@@ -268,30 +267,148 @@ export const getFilterExpenses: RequestHandler = async (req, res) => {
       }
     }
 
-    const [expenses , totalExpenses] = await Promise.all([
+    const [expenses, totalExpenses] = await Promise.all([
       expenseModel
-      .find(filter)
-      .sort({[sortBy]:sortOrder})
-      .skip(skip)
-      .limit(limit)
-      .lean(),
+        .find(filter)
+        .sort({ [sortBy]: sortOrder })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
 
-      expenseModel.countDocuments(filter)
-    ])
+      expenseModel.countDocuments(filter),
+    ]);
 
-    const totalPages = Math.ceil(totalExpenses/limit)
+    const totalPages = Math.ceil(totalExpenses / limit);
 
     return res.status(200).json({
-      message:'expenses filtered sucessfully',
+      message: "expenses filtered sucessfully",
       expenses,
-      pagination:{
+      pagination: {
         totalExpenses,
-        totalPages
-      }
-    })
-
+        totalPages,
+      },
+    });
   } catch (err) {
     console.error("Get filtered expenses error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
+
+export const searchExpense: RequestHandler = async (req, res) => {
+  try {
+    const searchTerm = getQuerryString(req.query.q);
+
+    if (!searchTerm) {
+      return res.status(404).json({
+        message: "Search query 'q' is required.",
+      });
+    }
+
+    if (searchTerm.length < 2) {
+      return res.status(404).json({
+        message: "Search query must contain at least 2 characters.",
+      });
+    }
+
+    if (searchTerm.length > 100) {
+      return res.status(404).json({
+        message: "Search query cannot exceed 100 characters.",
+      });
+    }
+
+    const escapedQuery = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const pageRaw = getQuerryString(req.query.page) ?? "1";
+    const limitRaw = getQuerryString(req.query.limit) ?? "10";
+
+    const page = Number(pageRaw);
+    const requestedLimit = Number(limitRaw);
+
+    if (!Number.isSafeInteger(page) || page < 1) {
+      return res.status(404).json({
+        message: "page must be a positive integer.",
+      });
+    }
+
+    if (!Number.isSafeInteger(requestedLimit) || requestedLimit < 1) {
+      return res.status(404).json({
+        message: "requestedLimit must be a positive integer.",
+      });
+    }
+
+    const limit = Math.min(requestedLimit, 100);
+    const skip = (page - 1) * limit;
+
+    const sortBy = getQuerryString(req.query.sortBy) ?? "date";
+    const order = getQuerryString(req.query.order) ?? "desc";
+
+    const allowedSortFilter = ["date", "amount", "createdAt", "title"];
+
+    if (!allowedSortFilter.includes(sortBy)) {
+      return res.status(404).json({
+        message: "Invalid sortBy field.",
+        allowedFields: allowedSortFilter,
+      });
+    }
+
+    if (order !== "asc" && order !== "desc") {
+      return res.status(404).json({
+        message: "order must be either asc or desc.",
+      });
+    }
+
+    const sortOrder: 1 | -1 = order === "asc" ? 1 : -1;
+
+    const sortOptions: Record<string, 1 | -1> = {
+      [sortBy]: sortOrder,
+      _id: sortOrder,
+    };
+
+    const filter = {
+      userId: req.user!.id,
+      $or: [
+        {
+          title: {
+            $regex: escapedQuery,
+            $options: "i",
+          },
+        },
+        {
+          note: {
+            $regex: escapedQuery,
+            $options: "i",
+          },
+        },
+      ],
+    };
+
+    const [expense, totalExpenses] = await Promise.all([
+      expenseModel
+        .find(filter)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      expenseModel.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalExpenses / limit);
+
+    return res.status(200).json({
+      message: "expense found sucessfully",
+      expense,
+      pagination: {
+        totalexpense: totalExpenses,
+        totalPages: totalPages,
+      },
+    });
+  } catch (err) {
+    console.error("Search expenses error:", err);
 
     return res.status(500).json({
       success: false,
