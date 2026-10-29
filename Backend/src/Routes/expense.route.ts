@@ -1,6 +1,6 @@
 import express from 'express'
 const route = express.Router()
-import { addExpense , getAllExpense , getExpense , updateExpense , deleteExpense, getFilterExpenses ,searchExpense , dashBoardExpenseCount , getMonthlySpendingSummary } from '../Controllers/expense.controller.js'
+import { addExpense , getAllExpense , getExpense , updateExpense , deleteExpense, getFilterExpenses ,searchExpense , dashBoardExpenseCount , getMonthlySpendingSummary , getCategorySummary } from '../Controllers/expense.controller.js'
 import { authMiddleware } from '../Middleware/auth.middleware.js'
 
 route.post('/addExpense',authMiddleware,addExpense)
@@ -12,6 +12,7 @@ route.get('/filterExpenses',authMiddleware,getFilterExpenses)
 route.get('/searchExpense',authMiddleware,searchExpense)
 route.get('/dashboard',authMiddleware,dashBoardExpenseCount)
 route.get('/monthlySpending',authMiddleware,getMonthlySpendingSummary)
+route.get('/categorySpending',authMiddleware,getCategorySummary)
 
 
 export default route;

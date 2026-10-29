@@ -435,12 +435,6 @@ export const dashBoardExpenseCount: RequestHandler = async (req, res) => {
       },
     ]);
 
-    if (!summary) {
-      return res.status(404).json({
-        message: "Something went wrong!",
-      });
-    }
-
     return res.status(200).json({
       message: "Expense summary fetched successfully",
       totalExpenses: summary[0]?.totalExpense ?? 0,
@@ -492,12 +486,6 @@ export const getMonthlySpendingSummary: RequestHandler = async(req,res)=>{
         }
       ])
 
-      if(!summary){
-        return res.status(404).json({
-          message:'something went wrong!'
-        })
-      }
-
       return res.status(200).json({
         message:'Monthly spending summary fetched successfully',
         summary
@@ -505,6 +493,39 @@ export const getMonthlySpendingSummary: RequestHandler = async(req,res)=>{
 
   }catch(err){
         console.error("Search expenses error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+}
+
+export const getCategorySummary: RequestHandler = async(req,res)=>{
+  try{
+
+    const summary = await expenseModel.aggregate([
+      {
+        $match:{
+          userId: new mongoose.Types.ObjectId(req.user!.id)
+        }
+      },
+      {
+        $group:{
+          _id:"$category",
+          totalSpending:{$sum:"$amount"},
+          expenseCount:{$sum:1}
+        }
+      }
+    ])
+
+    return res.status(200).json({
+      message:'Expense Summary found sucessfully',
+      summary
+    })
+
+  }catch(err){
+            console.error("Search expenses error:", err);
 
     return res.status(500).json({
       success: false,
