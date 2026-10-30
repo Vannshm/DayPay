@@ -33,12 +33,6 @@ export const getAllExpense: RequestHandler = async (req, res) => {
       userId: req.user!.id,
     });
 
-    if (!expenses) {
-      return res.status(401).json({
-        message: "Something Wend Wrong!",
-      });
-    }
-
     return res.status(200).json({
       message: "All expenses found sucessfully",
       expenses,

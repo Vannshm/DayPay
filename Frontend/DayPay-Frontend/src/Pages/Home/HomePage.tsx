@@ -25,7 +25,6 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useAuthStore } from '../authStore'
 import "./HomePage.css";
 
 type NavItem = "Dashboard" | "Add Expense" | "All Expenses" | "Categories" | "Reports";
@@ -38,12 +37,18 @@ type ExpenseCategory =
   | "Education"
   | "Others";
 
+type PaymentMethod = "cash" | "card" | "upi" | "bank_transfer" | "other";
+
 type Expense = {
   id: string;
   date: string;
   description: string;
   category: ExpenseCategory;
   amount: number;
+  // Maps to the `note` field in your MongoDB expense model.
+  note: string;
+  // Maps to the `paymentMethod` enum in your MongoDB expense model.
+  paymentMethod: PaymentMethod;
 };
 
 type HomePageProps = {
@@ -97,12 +102,21 @@ const categoryData: { name: ExpenseCategory; percent: number; color: string }[] 
 
 // SAMPLE UI DATA: Replace with getAllExpense() response from authStore.
 const recentExpenses: Expense[] = [
-  { id: "exp-001", date: "10 Apr 2025", description: "Groceries", category: "Food", amount: 1200 },
-  { id: "exp-002", date: "08 Apr 2025", description: "Uber Ride", category: "Transport", amount: 350 },
-  { id: "exp-003", date: "05 Apr 2025", description: "Shopping", category: "Shopping", amount: 2450 },
-  { id: "exp-004", date: "02 Apr 2025", description: "Electricity Bill", category: "Bills", amount: 1800 },
-  { id: "exp-005", date: "01 Apr 2025", description: "Movie", category: "Entertainment", amount: 600 },
+  { id: "exp-001", date: "10 Apr 2025", description: "Groceries", category: "Food", amount: 1200, note: "Weekly vegetables and household essentials", paymentMethod: "upi" },
+  { id: "exp-002", date: "08 Apr 2025", description: "Uber Ride", category: "Transport", amount: 350, note: "Ride to college", paymentMethod: "cash" },
+  { id: "exp-003", date: "05 Apr 2025", description: "Shopping", category: "Shopping", amount: 2450, note: "New shoes and t-shirt", paymentMethod: "card" },
+  { id: "exp-004", date: "02 Apr 2025", description: "Electricity Bill", category: "Bills", amount: 1800, note: "April electricity bill", paymentMethod: "bank_transfer" },
+  { id: "exp-005", date: "01 Apr 2025", description: "Movie", category: "Entertainment", amount: 600, note: "Movie tickets and snacks", paymentMethod: "upi" },
 ];
+
+// Converts the backend paymentMethod enum into a readable label for the dashboard table.
+const paymentMethodLabels: Record<PaymentMethod, string> = {
+  cash: "Cash",
+  card: "Card",
+  upi: "UPI",
+  bank_transfer: "Bank Transfer",
+  other: "Other",
+};
 
 const categoryIcons: Record<ExpenseCategory, typeof Utensils> = {
   Food: Utensils,
@@ -133,10 +147,9 @@ export default function HomePage({
   const [period, setPeriod] = useState("This Year");
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const { username } = useAuthStore();
 
   // TODO(authStore): Read the logged-in user's username from useAuthStore().
-  const displayName = username ?? "User" ;
+  const displayName = "Vansh";
 
   // TODO(authStore): Replace these sample totals with dashBoardExpenseCount() response.
   const dashboardStats = {
@@ -396,6 +409,8 @@ export default function HomePage({
                     <th>Date</th>
                     <th>Description</th>
                     <th>Category</th>
+                    {/* Shows the paymentMethod value from your expense model. */}
+                    <th>Payment Method</th>
                     <th className="amount-heading">Amount</th>
                     <th className="action-heading">Action</th>
                   </tr>
@@ -406,11 +421,23 @@ export default function HomePage({
                     return (
                       <tr key={expense.id}>
                         <td className="expense-date">{expense.date}</td>
-                        <td className="expense-description">{expense.description}</td>
+                        <td className="expense-description-cell">
+                          <span className="expense-description">{expense.description}</span>
+                          {/* Shows the optional note below the expense title; empty notes display a fallback. */}
+                          <span className={`expense-note ${expense.note ? "" : "expense-note-empty"}`}>
+                            {expense.note || "No note added"}
+                          </span>
+                        </td>
                         <td>
                           <span className={`expense-category category-${expense.category.toLowerCase()}`}>
                             <CategoryIcon size={13} strokeWidth={2.5} />
                             {expense.category}
+                          </span>
+                        </td>
+                        {/* Displays the model's paymentMethod with a human-readable label. */}
+                        <td>
+                          <span className={`payment-method-badge payment-${expense.paymentMethod}`}>
+                            {paymentMethodLabels[expense.paymentMethod]}
                           </span>
                         </td>
                         <td className="expense-amount">{formatCurrency(expense.amount)}</td>

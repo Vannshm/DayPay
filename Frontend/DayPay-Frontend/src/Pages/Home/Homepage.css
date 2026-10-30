@@ -217,14 +217,25 @@
 .view-all-button { display:flex; align-items:center; gap:3px; padding:2px 0; border:0; background:transparent; color:#07875d; font:inherit; font-size:10px; font-weight:700; cursor:pointer; }
 .view-all-button:hover { color:#04563e; }
 .expense-table-wrap { width:100%; overflow-x:auto; }
-.expense-table { width:100%; border-collapse:collapse; text-align:left; white-space:nowrap; }
+.expense-table { width:100%; min-width:760px; border-collapse:collapse; text-align:left; white-space:nowrap; }
 .expense-table thead { background:#f8fafc; }
 .expense-table th { height:29px; padding:0 9px; color:#75869b; font-size:9px; font-weight:500; }
-.expense-table td { height:34px; padding:0 9px; border-bottom:1px solid #edf1f4; color:#34465b; font-size:10px; }
+.expense-table td { height:48px; padding:6px 9px; border-bottom:1px solid #edf1f4; color:#34465b; font-size:10px; }
 .expense-table tbody tr:last-child td { border-bottom:0; }
 .expense-table tbody tr:hover { background:#fbfdfc; }
 .expense-date { color:#687b91 !important; }
-.expense-description { color:#25374c !important; font-weight:600; }
+/* Keeps the expense title and its note together in the Description column. */
+.expense-description-cell { min-width:170px; max-width:245px; }
+.expense-description { display:block; overflow:hidden; color:#25374c !important; font-weight:600; text-overflow:ellipsis; }
+/* Secondary text styling for the optional note stored on each expense. */
+.expense-note { display:block; max-width:225px; margin-top:3px; overflow:hidden; color:#8996a6; font-size:9px; font-weight:400; line-height:1.25; text-overflow:ellipsis; }
+.expense-note-empty { color:#aab3bf; font-style:italic; }
+/* Small neutral badge for cash, card, UPI, bank transfer, or other payment methods. */
+.payment-method-badge { display:inline-block; padding:4px 7px; border:1px solid #e8edf1; border-radius:20px; background:#f8fafb; color:#52647a; font-size:9px; font-weight:600; }
+.payment-upi { border-color:#dcefe7; background:#f0faf5; color:#087653; }
+.payment-card { border-color:#e0e9fa; background:#f3f7ff; color:#4779bd; }
+.payment-cash { border-color:#f4ebd8; background:#fffbf1; color:#9a752d; }
+.payment-bank_transfer { border-color:#e5e1f5; background:#f8f6ff; color:#7560a8; }
 .amount-heading, .expense-amount { text-align:right; }
 .expense-amount { color:#25374c !important; font-weight:600; }
 .action-heading { width:73px; text-align:center; }

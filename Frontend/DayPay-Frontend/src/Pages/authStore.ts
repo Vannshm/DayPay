@@ -11,9 +11,10 @@ interface AuthState {
   error: string | null;
   isLoading: boolean;
   isCheckingAuth: boolean;
+
   signup: (name: string, email: string, password: string) => Promise<void>;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
-  checkAuth: ()=> Promise<void>
+  checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -22,6 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   error: null,
   isLoading: false,
   isCheckingAuth: true,
+  
 
   signup: async (username, email, password) => {
     set({ isLoading: true, error: null });
@@ -46,57 +48,51 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-login: async (usernameOrEmail, password) => {
-  set({ isLoading: true, error: null });
+  login: async (usernameOrEmail, password) => {
+    set({ isLoading: true, error: null });
 
-  try {
-    const isEmail = usernameOrEmail.includes("@");
+    try {
+      const isEmail = usernameOrEmail.includes("@");
 
-    const credentials = isEmail
-      ? { email: usernameOrEmail, password }
-      : { username: usernameOrEmail, password };
+      const credentials = isEmail
+        ? { email: usernameOrEmail, password }
+        : { username: usernameOrEmail, password };
 
-    const response = await axios.post(
-      `${API_URL}/user-login`,
-      credentials
-    );
+      const response = await axios.post(`${API_URL}/user-login`, credentials);
 
-    set({
-      username: response.data.user.username,
-      isAuthenticated: true,
-      isLoading: false,
-    });
-  } catch (err) {
-    const message = axios.isAxiosError(err)
-      ? err.response?.data?.message || "Error logging in"
-      : "Error logging in";
+      set({
+        username: response.data.user.username,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (err) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || "Error logging in"
+        : "Error logging in";
 
-    set({ error: message, isLoading: false });
-    throw err;
-  }
-},
+      set({ error: message, isLoading: false });
+      throw err;
+    }
+  },
 
-checkAuth: async () => {
-  set({ isCheckingAuth: true });
+  checkAuth: async () => {
+    set({ isCheckingAuth: true });
 
-  try {
-    const response = await axios.get(
-      `${API_URL}/get-Profile`
-    );
+    try {
+      const response = await axios.get(`${API_URL}/get-Profile`);
 
-    set({
-      username: response.data.user.username,
-      isAuthenticated: true,
-      isCheckingAuth: false,
-    });
-
-  } catch (error) {
-    set({
-      username: null,
-      isAuthenticated: false,
-      isCheckingAuth: false,
-    });
-  }
-},
+      set({
+        username: response.data.user.username,
+        isAuthenticated: true,
+        isCheckingAuth: false,
+      });
+    } catch (error) {
+      set({
+        username: null,
+        isAuthenticated: false,
+        isCheckingAuth: false,
+      });
+    }
+  },
 
 }));
