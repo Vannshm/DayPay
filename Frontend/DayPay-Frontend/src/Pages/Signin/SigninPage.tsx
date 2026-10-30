@@ -14,7 +14,7 @@ import {
   LoaderCircle,
 } from "lucide-react";
 import "./SigninPage.css";
-import { useAuthStore } from '../Signin/authStore'
+import { useAuthStore } from '../authStore'
 import {WalletIllustration} from '../Signin/WalletIllustration'
 import type { FormValues , FormErrors, FieldName } from './FormValues'
 import { validateForm } from "./validateForm";

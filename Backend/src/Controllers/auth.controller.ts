@@ -48,8 +48,8 @@ export const register: RequestHandler = async (req, res) => {
 };
 
 export const login: RequestHandler = async (req, res) => {
-  const { username, email, password } = req.body;
   try {
+    const { username, email, password } = req.body;
     if (!password || (!username && !email)) {
       return res.status(400).json({
         message: "Password and username or email are required",
@@ -57,9 +57,7 @@ export const login: RequestHandler = async (req, res) => {
     }
 
     const user = await userModel
-      .findOne({
-        $or: [{ username }, { email }],
-      })
+      .findOne( email ? {email} : {username} )
       .select("+password");
 
     if (!user) {
@@ -118,4 +116,27 @@ export const logout: RequestHandler = async (req, res) => {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
   }
+};
+
+export const getProfile: RequestHandler =  async (req, res) => {
+    try {
+        // Get the logged-in user's ID from auth middleware
+        const user = await userModel.findById(req.user!.id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            user
+        });
+
+    } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+    }
 };
