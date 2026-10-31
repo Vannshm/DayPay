@@ -28,13 +28,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
-
-type NavItem =
-  | "Dashboard"
-  | "Add Expense"
-  | "All Expenses"
-  | "Categories"
-  | "Reports";
+import { SideBar } from './SideBar'
+import { Header } from './Header'
+import type { NavItem } from './NavItem'
 
 type HomePageProps = {
   // TODO(authStore): Connect this to addExpense(), or open your Add Expense form/modal.
@@ -161,9 +157,14 @@ export default function HomePage({
     setActiveNav(item);
     setMobileNavOpen(false);
 
-    if (item === "Add Expense") {
+    switch (item) {
+    case "Add Expense":
       navigate("/add-expense");
-      return;
+      break;
+
+    case "Dashboard":
+      navigate("/home");
+      break
     }
 
     onNavigate?.(item);
@@ -207,97 +208,18 @@ export default function HomePage({
         />
       )}
 
-      <aside className={`dashboard-sidebar ${mobileNavOpen ? "is-open" : ""}`}>
-        <div className="dashboard-brand">
-          <span className="dashboard-brand-icon">
-            <Wallet size={25} strokeWidth={2.6} />
-          </span>
-          <span>DayPay</span>
-          <button
-            className="sidebar-close-button"
-            type="button"
-            aria-label="Close menu"
-            onClick={() => setMobileNavOpen(false)}
-          >
-            <X size={19} />
-          </button>
-        </div>
-
-        <nav className="dashboard-nav" aria-label="Main navigation">
-          {navigation.map(({ label, icon: Icon }) => (
-            <button
-              className={`dashboard-nav-item ${activeNav === label ? "active" : ""}`}
-              key={label}
-              type="button"
-              onClick={() => handleNavigation(label)}
-            >
-              <Icon size={17} strokeWidth={2} />
-              <span>{label}</span>
-              {activeNav === label && (
-                <ChevronRight className="nav-chevron" size={16} />
-              )}
-            </button>
-          ))}
-        </nav>
-
-        <button
-          className="dashboard-logout"
-          type="button"
-          onClick={handleLogout}
-        >
-          <LogOut size={17} />
-          <span>Logout</span>
-        </button>
-      </aside>
+      <SideBar activeNav={activeNav}
+      mobileNavOpen={mobileNavOpen}
+      setMobileNavOpen={setMobileNavOpen}
+      handleNavigation={handleNavigation}
+      handleLogout={handleLogout} />
 
       <section className="dashboard-main">
-        <header className="dashboard-topbar">
-          <button
-            className="mobile-menu-button"
-            type="button"
-            aria-label="Open navigation"
-            onClick={() => setMobileNavOpen(true)}
-          >
-            <Menu size={21} />
-          </button>
-          <div className="dashboard-greeting">
-            <h1>
-              Hello, {displayName} <span aria-hidden="true">👋</span>
-            </h1>
-            <p>Here's what's happening with your money today.</p>
-          </div>
-
-          <div className="dashboard-profile-wrap">
-            <button
-              className="dashboard-profile"
-              type="button"
-              aria-expanded={profileOpen}
-              onClick={() => setProfileOpen((open) => !open)}
-            >
-              <span className="profile-avatar">
-                {displayName.charAt(0).toUpperCase()}
-              </span>
-              <span className="profile-name">{displayName}</span>
-              <ChevronDown size={15} />
-            </button>
-            {profileOpen && (
-              <div className="profile-menu">
-                <div className="profile-menu-user">
-                  <span className="profile-avatar">
-                    {displayName.charAt(0).toUpperCase()}
-                  </span>
-                  <span>
-                    <strong>{displayName}</strong>
-                    <small>DayPay account</small>
-                  </span>
-                </div>
-                <button type="button" onClick={handleLogout}>
-                  <LogOut size={15} /> Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
+        <Header setMobileNavOpen={setMobileNavOpen}
+        displayName={displayName}
+        profileOpen={profileOpen}
+        setProfileOpen={setProfileOpen}
+        handleLogout={handleLogout}/>
 
         <div className="dashboard-content">
           <section
