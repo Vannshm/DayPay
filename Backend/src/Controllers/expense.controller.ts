@@ -31,7 +31,7 @@ export const getAllExpense: RequestHandler = async (req, res) => {
   try {
     const expenses = await expenseModel.find({
       userId: req.user!.id,
-    });
+    }).sort({date:-1});
 
     return res.status(200).json({
       message: "All expenses found sucessfully",

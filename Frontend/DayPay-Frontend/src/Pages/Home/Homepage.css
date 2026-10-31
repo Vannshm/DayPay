@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
 
+.expense-table tbody tr {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
 .daypay-dashboard {
   --dp-green: #087653;
   --dp-green-dark: #053d34;
