@@ -26,6 +26,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
 
 type NavItem =
@@ -126,12 +127,20 @@ export default function HomePage({
   const [period, setPeriod] = useState("This Year");
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const { expenses, isLoading, error, getAllExpenses , summary , dashboard , deleteExpense } = useExpenseStore();
+  const navigate = useNavigate();
+  const {
+    expenses,
+    isLoading,
+    error,
+    getAllExpenses,
+    summary,
+    dashboard,
+    deleteExpense,
+  } = useExpenseStore();
   useEffect(() => {
     getAllExpenses();
     dashboard();
-  }, [getAllExpenses,dashboard]);
-  
+  }, [getAllExpenses, dashboard]);
 
   const recentExpenses = expenses.slice(0, 5);
 
@@ -153,12 +162,10 @@ export default function HomePage({
     setMobileNavOpen(false);
 
     if (item === "Add Expense") {
-      // TODO(authStore): Call your add-expense action or open the Add Expense modal here.
-      onAddExpense?.();
+      navigate("/add-expense");
       return;
     }
 
-    // TODO(router): Navigate to the selected page (Dashboard / All Expenses / Categories / Reports).
     onNavigate?.(item);
   };
 
@@ -178,8 +185,8 @@ export default function HomePage({
   };
 
   // Handles deleting a row; pass the selected expense ID to deleteExpense(expenseId).
-  const handleDeleteExpense = async(expenseId: string) => {
-   await deleteExpense(expenseId);
+  const handleDeleteExpense = async (expenseId: string) => {
+    await deleteExpense(expenseId);
   };
 
   // Handles logout; connect this to logout() from your Zustand auth store.

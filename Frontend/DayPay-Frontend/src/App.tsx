@@ -3,6 +3,7 @@ import  SignupPage  from './Pages/Signin/SigninPage';
 import { useAuthStore } from './Pages/authStore'
 import LoginPage from './Pages/Login/LoginPage'
 import HomePage from './Pages/Home/HomePage'
+import AddExpensePage from './Pages/AddExpense/AddExpensePage'
 import { useEffect } from 'react';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
       <Route path='/signup' element={<SignupPage/> }/>
       <Route path='/login' element={<LoginPage/> }/>
       <Route path='/home' element={<HomePage/> }/>
+      <Route path='/add-expense' element={<AddExpensePage/> }/>
     </Routes>
     </>
   );
