@@ -30,6 +30,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import "./AllExpensesPage.css";
+import { useExpenseStore } from "../expenseStore"
 import { useNavigate } from "react-router-dom";
 import type { NavItem } from "../Home/NavItem";
 import { SideBar } from "../Home/SideBar";
@@ -251,9 +252,6 @@ export default function AllExpensesPage({
   username = "Vansh",
 }: AllExpensesPageProps) {
   // If no loader is connected, sampleExpenses keeps the page preview populated.
-  const [expenses, setExpenses] = useState<ExpenseRecord[]>(sampleExpenses);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | "all">("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -261,39 +259,11 @@ export default function AllExpensesPage({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<NavItem>("All Expenses");
   const navigate = useNavigate()
+  const { getAllExpenses , expenses , isLoading , error:loadError } = useExpenseStore();
+  useEffect(()=>{
+    getAllExpenses();
+  },[getAllExpenses])
 
-  // Loads all expenses from the callback connected to your Zustand getAllExpense() function.
-  useEffect(() => {
-    if (!onLoadExpenses) return;
-
-    let isMounted = true;
-
-    const loadExpenses = async () => {
-      setIsLoading(true);
-      setLoadError("");
-
-      try {
-        const result = await onLoadExpenses();
-        if (isMounted) {
-          setExpenses(Array.isArray(result) ? result : []);
-        }
-      } catch (error) {
-        if (isMounted) {
-          const message =
-            error instanceof Error ? error.message : "Unable to load your expenses.";
-          setLoadError(message);
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    void loadExpenses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [onLoadExpenses]);
 
   // Filters expenses by search text and the selected category.
   const filteredExpenses = useMemo(() => {
@@ -413,27 +383,6 @@ const handleNavigation = (page: PageName) => {
       />
 
       <section className="all-expenses-main">
-        <header className="all-expenses-topbar">
-          <button
-            className="all-mobile-menu"
-            type="button"
-            aria-label="Open navigation"
-            onClick={() => setMobileNavOpen(true)}
-          >
-            <Menu size={21} />
-          </button>
-
-          <div className="all-expenses-greeting">
-            <h1>Hello, {username} <span aria-hidden="true">👋</span></h1>
-            <p>Here's a complete list of your expenses.</p>
-          </div>
-
-          <div className="all-expenses-user">
-            <span className="all-user-avatar">{username.charAt(0).toUpperCase()}</span>
-            <span>{username}</span>
-            <ChevronDown size={16} />
-          </div>
-        </header>
 
         <div className="all-expenses-content">
           <section className="all-expenses-toolbar">
