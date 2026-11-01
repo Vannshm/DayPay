@@ -30,7 +30,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import "./AllExpensesPage.css";
-import { useExpenseStore } from "../expenseStore"
+import { useExpenseStore } from "../expenseStore";
 import { useNavigate } from "react-router-dom";
 import type { NavItem } from "../Home/NavItem";
 import { SideBar } from "../Home/SideBar";
@@ -45,12 +45,7 @@ export type ExpenseCategory =
   | "education"
   | "other";
 
-export type PaymentMethod =
-  | "cash"
-  | "card"
-  | "upi"
-  | "bank_transfer"
-  | "other";
+export type PaymentMethod = "cash" | "card" | "upi" | "bank_transfer" | "other";
 
 // This type follows the fields returned by your MongoDB expense model.
 export type ExpenseRecord = {
@@ -65,7 +60,12 @@ export type ExpenseRecord = {
   updatedAt?: string;
 };
 
-type PageName = "Dashboard" | "Add Expense" | "All Expenses" | "Categories" | "Reports";
+type PageName =
+  | "Dashboard"
+  | "Add Expense"
+  | "All Expenses"
+  | "Categories"
+  | "Reports";
 
 type AllExpensesPageProps = {
   // TODO(authStore): Pass getAllExpense() here. It must return response.data.expenses.
@@ -253,37 +253,51 @@ export default function AllExpensesPage({
 }: AllExpensesPageProps) {
   // If no loader is connected, sampleExpenses keeps the page preview populated.
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | "all">("all");
+  const [selectedCategory, setSelectedCategory] = useState<
+    ExpenseCategory | "all"
+  >("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<NavItem>("All Expenses");
-  const navigate = useNavigate()
-  const { getAllExpenses , searchExpense , expenses , isLoading , error:loadError } = useExpenseStore();
-useEffect(() => {
-  const query = searchTerm.trim();
+  const navigate = useNavigate();
+  const {
+    getAllExpenses,
+    searchExpense,
+    deleteExpense,
+    expenses,
+    isLoading,
+    error: loadError,
+  } = useExpenseStore();
+  useEffect(() => {
+    const query = searchTerm.trim();
 
-  const timer = setTimeout(() => {
-    if (query.length >= 2) {
-      searchExpense(query);
-    } else {
-      getAllExpenses();
-    }
-  }, query.length >= 2 ? 400 : 0);
+    const timer = setTimeout(
+      () => {
+        if (query.length >= 2) {
+          searchExpense(query);
+        } else {
+          getAllExpenses();
+        }
+      },
+      query.length >= 2 ? 400 : 0,
+    );
 
-  return () => clearTimeout(timer);
+    return () => clearTimeout(timer);
+  }, [searchTerm, searchExpense, getAllExpenses]);
 
-}, [searchTerm, searchExpense, getAllExpenses]);
+  const handleDeleteExpense = async (expenseId: string) => {
+    await deleteExpense(expenseId);
+  };
 
   // Filters expenses by search text and the selected category.
-const filteredExpenses = useMemo(() => {
-  return expenses.filter((expense) => {
-    return (
-      selectedCategory === "all" ||
-      expense.category === selectedCategory
-    );
-  });
-}, [expenses, selectedCategory]);
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter((expense) => {
+      return (
+        selectedCategory === "all" || expense.category === selectedCategory
+      );
+    });
+  }, [expenses, selectedCategory]);
 
   // Build date groups after filtering, so each date header total reflects visible matching expenses.
   const dateGroups = useMemo(
@@ -337,24 +351,24 @@ const filteredExpenses = useMemo(() => {
   };
 
   // Handles sidebar navigation; route changes are owned by the parent component.
-const handleNavigation = (page: PageName) => {
-  setActiveNav(page);
-  setMobileNavOpen(false);
+  const handleNavigation = (page: PageName) => {
+    setActiveNav(page);
+    setMobileNavOpen(false);
 
-  switch (page) {
-    case "Dashboard":
-      navigate("/home");
-      break;
+    switch (page) {
+      case "Dashboard":
+        navigate("/home");
+        break;
 
-    case "Add Expense":
-      navigate("/add-expense");
-      break;
+      case "Add Expense":
+        navigate("/add-expense");
+        break;
 
-    case "All Expenses":
-      navigate("/all-expenses");
-      break;
-  }
-};
+      case "All Expenses":
+        navigate("/all-expenses");
+        break;
+    }
+  };
 
   // Delegates logout to the authentication store through the parent component.
   const handleLogout = () => onLogout?.();
@@ -379,11 +393,12 @@ const handleNavigation = (page: PageName) => {
       />
 
       <section className="all-expenses-main">
-
         <div className="all-expenses-content">
           <section className="all-expenses-toolbar">
             <div className="all-toolbar-intro">
-              <span className="all-toolbar-icon"><ReceiptText size={34} strokeWidth={2.2} /></span>
+              <span className="all-toolbar-icon">
+                <ReceiptText size={34} strokeWidth={2.2} />
+              </span>
               <div>
                 <h2>All Expenses</h2>
                 <p>Track and manage all your expenses in one place.</p>
@@ -411,7 +426,9 @@ const handleNavigation = (page: PageName) => {
                 >
                   <option value="all">All Categories</option>
                   {Object.entries(categoryLabels).map(([value, label]) => (
-                    <option value={value} key={value}>{label}</option>
+                    <option value={value} key={value}>
+                      {label}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown size={15} />
@@ -447,7 +464,10 @@ const handleNavigation = (page: PageName) => {
 
           {!isLoading && !loadError && visibleGroups.length > 0 && (
             <>
-              <section className="all-expense-groups" aria-label="Expenses grouped by date">
+              <section
+                className="all-expense-groups"
+                aria-label="Expenses grouped by date"
+              >
                 {visibleGroups.map((group) => (
                   <article className="all-date-group" key={group.key}>
                     <header className="all-date-group-header">
@@ -460,13 +480,17 @@ const handleNavigation = (page: PageName) => {
 
                     <div className="all-date-expense-list">
                       {group.expenses.map((expense) => {
-                        const CategoryIcon = categoryIcons[expense.category] ?? CircleEllipsis;
+                        const CategoryIcon =
+                          categoryIcons[expense.category] ?? CircleEllipsis;
                         const categoryClass = `cat-${expense.category}`;
-                        const method = paymentLabels[expense.paymentMethod ?? "other"];
+                        const method =
+                          paymentLabels[expense.paymentMethod ?? "other"];
 
                         return (
                           <div className="all-expense-row" key={expense._id}>
-                            <span className={`all-expense-category-icon ${categoryClass}`}>
+                            <span
+                              className={`all-expense-category-icon ${categoryClass}`}
+                            >
                               <CategoryIcon size={24} strokeWidth={2.2} />
                             </span>
 
@@ -486,11 +510,16 @@ const handleNavigation = (page: PageName) => {
                               {formatCurrency(Number(expense.amount))}
                             </strong>
 
-                            <span className={`all-category-badge ${categoryClass}`}>
+                            <span
+                              className={`all-category-badge ${categoryClass}`}
+                            >
                               {categoryLabels[expense.category]}
                             </span>
 
-                            <time className="all-expense-time" dateTime={expense.date}>
+                            <time
+                              className="all-expense-time"
+                              dateTime={expense.date}
+                            >
                               <Clock3 size={15} />
                               {formatExpenseTime(expense.date)}
                             </time>
@@ -501,17 +530,29 @@ const handleNavigation = (page: PageName) => {
                                 type="button"
                                 aria-label={`Actions for ${expense.title}`}
                                 aria-expanded={openMenuId === expense._id}
-                                onClick={() => setOpenMenuId((current) => current === expense._id ? null : expense._id)}
+                                onClick={() =>
+                                  setOpenMenuId((current) =>
+                                    current === expense._id
+                                      ? null
+                                      : expense._id,
+                                  )
+                                }
                               >
                                 <EllipsisVertical size={20} />
                               </button>
 
                               {openMenuId === expense._id && (
                                 <div className="all-row-menu">
-                                  <button type="button" onClick={() => handleEdit(expense)}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEdit(expense)}
+                                  >
                                     <Pencil size={14} /> Edit
                                   </button>
-                                  <button type="button" onClick={() => handleDelete(expense._id)}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteExpense(expense._id)}
+                                  >
                                     <Trash2 size={14} /> Delete
                                   </button>
                                 </div>
@@ -536,7 +577,9 @@ const handleNavigation = (page: PageName) => {
                   >
                     <ChevronLeft size={21} />
                   </button>
-                  <span className="pagination-current" aria-current="page">{currentPage}</span>
+                  <span className="pagination-current" aria-current="page">
+                    {currentPage}
+                  </span>
                   <button
                     type="button"
                     className="pagination-arrow"
@@ -555,7 +598,8 @@ const handleNavigation = (page: PageName) => {
           )}
 
           <p className="all-expenses-footnote">
-            Showing {filteredExpenses.length} {filteredExpenses.length === 1 ? "expense" : "expenses"}
+            Showing {filteredExpenses.length}{" "}
+            {filteredExpenses.length === 1 ? "expense" : "expenses"}
             {expenses.length > 0 && ` out of ${expenses.length}`}
           </p>
         </div>

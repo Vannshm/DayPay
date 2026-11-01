@@ -172,6 +172,7 @@ export default function AddExpensePage({
     setFormError("");
     setFormSuccess("");
 
+
     if (!values.title.trim()) {
       setFormError("Please enter an expense title.");
       return;
