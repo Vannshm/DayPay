@@ -4,6 +4,7 @@ import { useAuthStore } from './Pages/authStore'
 import LoginPage from './Pages/Login/LoginPage'
 import HomePage from './Pages/Home/HomePage'
 import AddExpensePage from './Pages/AddExpense/AddExpensePage'
+import AllExpensesPage from './Pages/AllExpenses/AllExpensesPage'
 import { useEffect } from 'react';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
       <Route path='/login' element={<LoginPage/> }/>
       <Route path='/home' element={<HomePage/> }/>
       <Route path='/add-expense' element={<AddExpensePage/> }/>
+      <Route path='/all-expenses' element={<AllExpensesPage/> }/>
     </Routes>
     </>
   );

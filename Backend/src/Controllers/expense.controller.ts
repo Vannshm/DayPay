@@ -31,7 +31,7 @@ export const getAllExpense: RequestHandler = async (req, res) => {
   try {
     const expenses = await expenseModel.find({
       userId: req.user!.id,
-    }).sort({date:-1});
+    }).sort({createdAt: -1});
 
     return res.status(200).json({
       message: "All expenses found sucessfully",
@@ -509,6 +509,11 @@ export const getCategorySummary: RequestHandler = async(req,res)=>{
           _id:"$category",
           totalSpending:{$sum:"$amount"},
           expenseCount:{$sum:1}
+        }
+      },
+      {
+        $sort:{
+          totalSpending: -1
         }
       }
     ])

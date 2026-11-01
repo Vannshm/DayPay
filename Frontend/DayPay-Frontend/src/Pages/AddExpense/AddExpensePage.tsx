@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useState, type FormEvent, type ChangeEvent, useEffect } from "react";
 import {
   WalletCards,
   LayoutDashboard,
@@ -34,17 +34,11 @@ import { Header } from "../Home/Header";
 import type { NavItem } from "../Home/NavItem";
 import { useNavigate } from "react-router-dom";
 import "./AddExpensePage.css";
-
-type ExpenseCategory =
-  | "food"
-  | "transport"
-  | "shopping"
-  | "bills"
-  | "health"
-  | "entertainment"
-  | "education"
-  | "other";
-type PaymentMethod = "cash" | "card" | "upi" | "bank_transfer" | "other";
+import {
+  useExpenseStore,
+  type ExpenseCategory,
+  type PaymentMethod,
+} from "../expenseStore";
 
 type ExpensePayload = {
   title: string;
@@ -58,8 +52,6 @@ type ExpensePayload = {
 type FormValues = Omit<ExpensePayload, "amount"> & { amount: string };
 
 type AddExpensePageProps = {
-  // TODO(authStore): Pass your Zustand addExpense function here; it receives the complete expense payload.
-  onAddExpense?: (expense: ExpensePayload) => Promise<void> | void;
   // TODO(router): Connect this callback to the Dashboard / All Expenses / Categories / Reports routes.
   onNavigate?: (page: NavItem) => void;
   // TODO(authStore): Connect this callback to the logout() action in your authentication store.
@@ -68,58 +60,16 @@ type AddExpensePageProps = {
   username?: string;
 };
 
-type RecentExpense = {
-  id: string;
-  category: ExpenseCategory;
-  note: string;
-  date: string;
-  amount: number;
-  icon: typeof Utensils;
+const categoryIcons: Record<ExpenseCategory, typeof Utensils> = {
+  food: Utensils,
+  transport: BusFront,
+  shopping: ShoppingBag,
+  bills: Zap,
+  health: CheckCircle2,
+  entertainment: Gamepad2,
+  education: CalendarDays,
+  other: Shapes,
 };
-
-// SAMPLE DATA: Replace this list with the latest items returned by getAllExpense() in authStore.
-const sampleRecentExpenses: RecentExpense[] = [
-  {
-    id: "sample-1",
-    category: "food",
-    note: "Lunch at cafe",
-    date: "10 Nov, 2025",
-    amount: 250,
-    icon: Utensils,
-  },
-  {
-    id: "sample-2",
-    category: "transport",
-    note: "Bus fare",
-    date: "09 Nov, 2025",
-    amount: 40,
-    icon: BusFront,
-  },
-  {
-    id: "sample-3",
-    category: "shopping",
-    note: "New Shoes",
-    date: "08 Nov, 2025",
-    amount: 1999,
-    icon: ShoppingBag,
-  },
-  {
-    id: "sample-4",
-    category: "bills",
-    note: "Electricity Bill",
-    date: "07 Nov, 2025",
-    amount: 1200,
-    icon: Zap,
-  },
-  {
-    id: "sample-5",
-    category: "entertainment",
-    note: "Movie Ticket",
-    date: "06 Nov, 2025",
-    amount: 300,
-    icon: Gamepad2,
-  },
-];
 
 const categoryLabels: Record<ExpenseCategory, string> = {
   food: "Food",
@@ -169,7 +119,6 @@ const formatCurrency = (amount: number) =>
   }).format(amount);
 
 export default function AddExpensePage({
-  onAddExpense,
   onNavigate,
   onLogout,
   username = "Vansh",
@@ -181,8 +130,22 @@ export default function AddExpensePage({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<NavItem>("Add Expense");
   const navigate = useNavigate();
-  const [profileOpen, setProfileOpen] = useState(false);
-  const displayName = username;
+  // const [profileOpen, setProfileOpen] = useState(false);
+  // const displayName = username;
+  const { addExpense, getAllExpenses, expenses, isLoading, error } =
+    useExpenseStore();
+  useEffect(() => {
+    getAllExpenses();
+  }, [getAllExpenses]);
+
+  const recentExpenses = expenses.slice(0, 5);
+
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
 
   // Updates one controlled form field and clears stale feedback as the user edits.
   const handleChange = (
@@ -225,23 +188,16 @@ export default function AddExpensePage({
       return;
     }
 
-    if (!onAddExpense) {
-      setFormError(
-        "Connect your addExpense function from authStore to save this expense.",
-      );
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      await onAddExpense({
-        title: values.title.trim(),
+      await addExpense(
+        values.title.trim(),
         amount,
-        category: values.category,
-        date: values.date,
-        note: values.note.trim(),
-        paymentMethod: values.paymentMethod,
-      });
+        values.category,
+        values.date,
+        values.note.trim(),
+        values.paymentMethod,
+      );
       setFormSuccess("Expense added successfully.");
       setValues({ ...initialValues, date: getTodayDate() });
     } catch (error) {
@@ -294,13 +250,13 @@ export default function AddExpensePage({
       />
 
       <section className="add-main">
-        <Header
+        {/* <Header
           setMobileNavOpen={setMobileNavOpen}
           displayName={displayName}
           profileOpen={profileOpen}
           setProfileOpen={setProfileOpen}
           handleLogout={handleLogout}
-        />
+        /> */}
 
         <div className="add-page-content">
           <section className="add-layout-grid">
@@ -515,10 +471,10 @@ export default function AddExpensePage({
                 </div>
 
                 <div className="recent-expenses-list">
-                  {sampleRecentExpenses.map((expense) => {
-                    const CategoryIcon = expense.icon;
+                  {recentExpenses.map((expense) => {
+                    const CategoryIcon = categoryIcons[expense.category];
                     return (
-                      <div className="recent-expense-row" key={expense.id}>
+                      <div className="recent-expense-row" key={expense._id}>
                         <span
                           className={`recent-category-icon icon-${expense.category}`}
                         >
@@ -526,11 +482,11 @@ export default function AddExpensePage({
                         </span>
                         <div className="recent-expense-info">
                           <strong>{categoryLabels[expense.category]}</strong>
-                          <span>{expense.note}</span>
+                          <span>{expense.note || expense.title}</span>
                         </div>
                         <div className="recent-expense-date">
                           <CalendarDays size={16} />
-                          <span>{expense.date}</span>
+                          <span>{formatDate(expense.date)}</span>
                         </div>
                         <strong className="recent-expense-amount">
                           − {formatCurrency(expense.amount)}

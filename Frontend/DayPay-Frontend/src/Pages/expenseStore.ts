@@ -7,13 +7,14 @@ axios.defaults.withCredentials = true;
 
 // 1. Define expense categories
 export type ExpenseCategory =
-  | "Food"
-  | "Transport"
-  | "Shopping"
-  | "Bills"
-  | "Entertainment"
-  | "Education"
-  | "Others";
+  | "food"
+  | "transport"
+  | "shopping"
+  | "bills"
+  | "health"
+  | "entertainment"
+  | "education"
+  | "other";
 
 // 2. Define payment methods
 export type PaymentMethod = "cash" | "card" | "upi" | "bank_transfer" | "other";
@@ -21,6 +22,12 @@ export type PaymentMethod = "cash" | "card" | "upi" | "bank_transfer" | "other";
 export interface DashboardSummary {
   totalExpenses: number;
   expenseCount: number;
+}
+
+export interface CategorySpending {
+  _id:ExpenseCategory;
+  totalSpending:number,
+  expenseCount:number
 }
 
 // 3. Define the structure of one expense
@@ -38,20 +45,35 @@ interface AuthState {
   error: string | null;
   isLoading: boolean;
   isDeleting: boolean;
+
   summary: DashboardSummary | null;
   expenses: Expense[];
+
+  categorySummary: CategorySpending[];
+  topExpense: CategorySpending | null;
 
   getAllExpenses: () => Promise<void>;
   dashboard: () => Promise<void>;
   deleteExpense: (expenseId: string) => Promise<void>;
+  addExpense: (
+    title: string,
+    amount: number,
+    category: ExpenseCategory,
+    date: string,
+    note: string,
+    paymentMethod: PaymentMethod,
+  ) => Promise<void>;
+  getCategorySummary: () => Promise<void>;
 }
 
-export const useExpenseStore = create<AuthState>((set) => ({
+export const useExpenseStore = create<AuthState>((set,get) => ({
   error: null,
   isLoading: false,
   isDeleting: false,
   expenses: [],
   summary: null,
+  categorySummary:[],
+  topExpense: null,
 
   getAllExpenses: async () => {
     set({ isLoading: true, error: null });
@@ -91,33 +113,84 @@ export const useExpenseStore = create<AuthState>((set) => ({
       await axios.delete(`${API_URL}/deleteExpense/${expenseId}`);
 
       set((state) => {
-
         const deleteExpense = state.expenses.find(
-          (expense) => expense._id === expenseId
+          (expense) => expense._id === expenseId,
         );
 
-        if(!deleteExpense){
-          return {isDeleting:false}
+        if (!deleteExpense) {
+          return { isDeleting: false };
         }
 
         return {
-          expenses : state.expenses.filter(
-            (expense) => expense._id !== expenseId
+          expenses: state.expenses.filter(
+            (expense) => expense._id !== expenseId,
           ),
 
-          summary : state.summary
-          ?{
-            totalExpenses: state.summary.totalExpenses - deleteExpense.amount,
-            expenseCount: state.summary.expenseCount - 1
-          }
-          : null,
-          isDeleting:false
-        }
+          summary: state.summary
+            ? {
+                totalExpenses:
+                  state.summary.totalExpenses - deleteExpense.amount,
+                expenseCount: state.summary.expenseCount - 1,
+              }
+            : null,
+          isDeleting: false,
+        };
       });
+      await get().getCategorySummary();
     } catch (err) {
       set({
         error: "Failed to fetch expenses",
         isDeleting: false,
+      });
+    }
+  },
+
+  addExpense: async (title, amount, category, date, note, paymentMethod) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/addExpense`, {
+        title,
+        amount,
+        category,
+        date,
+        note,
+        paymentMethod,
+      });
+      set((state) => ({
+        expenses: [response.data.expense, ...state.expenses],
+
+        summary: state.summary
+          ? {
+              totalExpenses: state.summary.totalExpenses + amount,
+              expenseCount: state.summary.expenseCount + 1,
+            }
+          : null,
+        isLoading: false,
+      }));
+      await get().getCategorySummary();
+    } catch (err) {
+      set({
+        error: "Failed to add expenses",
+        isLoading: false,
+      });
+    }
+  },
+
+  getCategorySummary: async () => {
+    set({ isLoading: true, error: null });
+    try {
+
+      const response = await axios(`${API_URL}/categorySpending`);
+      set({
+        categorySummary: response.data.summary,
+        topExpense: response.data.summary[0] ?? null,
+        isLoading:false
+      })
+
+    } catch (err) {
+      set({
+        error: "Failed to add expenses",
+        isLoading: false,
       });
     }
   },

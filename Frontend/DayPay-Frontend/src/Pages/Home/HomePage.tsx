@@ -25,6 +25,7 @@ import {
   ArrowUpRight,
   Menu,
   X,
+  Percent,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
@@ -71,19 +72,17 @@ const monthlyData = [
   { month: "Dec", amount: 3500 },
 ];
 
-// SAMPLE UI DATA: Replace with getCategorySummary() response from authStore.
-const categoryData: {
-  name: ExpenseCategory;
-  percent: number;
-  color: string;
-}[] = [
-  { name: "Food", percent: 34, color: "#15966c" },
-  { name: "Transport", percent: 21, color: "#5895f5" },
-  { name: "Shopping", percent: 15, color: "#f4a000" },
-  { name: "Bills", percent: 12, color: "#ef665b" },
-  { name: "Entertainment", percent: 10, color: "#f39a3d" },
-  { name: "Others", percent: 8, color: "#a44ab2" },
-];
+const categoryColors: Record<ExpenseCategory, string> = {
+  food: "#15966C",
+  transport: "#4F8FE8",
+  shopping: "#E5A23B",
+  bills: "#E45D5D",
+  health: "#D96C9D",
+  entertainment: "#8968D5",
+  education: "#64748B",
+  other: "#A0A8B5",
+};
+
 
 // Converts the backend paymentMethod enum into a readable label for the dashboard table.
 const paymentMethodLabels: Record<PaymentMethod, string> = {
@@ -95,13 +94,14 @@ const paymentMethodLabels: Record<PaymentMethod, string> = {
 };
 
 const categoryIcons: Record<ExpenseCategory, typeof Utensils> = {
-  Food: Utensils,
-  Transport: CarFront,
-  Shopping: ShoppingBag,
-  Bills: House,
-  Entertainment: Clapperboard,
-  Education: GraduationCap,
-  Others: CircleEllipsis,
+  food: Utensils,
+  transport: CarFront,
+  shopping: ShoppingBag,
+  bills: House,
+  health: HeartPulse,
+  entertainment: Clapperboard,
+  education: GraduationCap,
+  other: CircleEllipsis,
 };
 
 const formatCurrency = (amount: number) =>
@@ -132,13 +132,40 @@ export default function HomePage({
     summary,
     dashboard,
     deleteExpense,
+    getCategorySummary,
+    categorySummary,
+    topExpense
   } = useExpenseStore();
   useEffect(() => {
     getAllExpenses();
     dashboard();
-  }, [getAllExpenses, dashboard]);
-
+    getCategorySummary();
+  }, [getAllExpenses, dashboard, getCategorySummary]);
   const recentExpenses = expenses.slice(0, 5);
+
+    const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+
+    const totalCategorySpending = categorySummary.reduce((total,category)=> total+category.totalSpending,0)
+
+    const categoryData: {
+  name: ExpenseCategory;
+  percent: number;
+  color: string;
+}[] = categorySummary.map((category)=>({
+  name: category._id,
+  percent: 
+  totalCategorySpending > 0 
+  ? Math.round(
+    (category.totalSpending/totalCategorySpending)*100
+  )
+  : 0,
+  color: categoryColors[category._id]
+}));
 
   // TODO(authStore): Read the logged-in user's username from useAuthStore().
   const displayName = "Vansh";
@@ -147,8 +174,8 @@ export default function HomePage({
   const dashboardStats = {
     totalExpenses: summary?.totalExpenses ?? 0,
     totalTransactions: summary?.expenseCount ?? 0,
-    highestCategory: "Food",
-    highestCategoryAmount: 4200,
+    highestCategory: topExpense?._id ?? "No Expenses",
+    highestCategoryAmount: topExpense?.totalSpending ?? 0,
     remaining: 7550,
   };
 
@@ -402,7 +429,7 @@ export default function HomePage({
 
                       return (
                         <tr key={expense._id}>
-                          <td className="expense-date">{expense.date}</td>
+                          <td className="expense-date">{formatDate(expense.date)}</td>
 
                           <td className="expense-description-cell">
                             <span className="expense-description">
