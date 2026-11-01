@@ -64,6 +64,7 @@ interface AuthState {
     paymentMethod: PaymentMethod,
   ) => Promise<void>;
   getCategorySummary: () => Promise<void>;
+  searchExpense: (searchTerm: string) => Promise<void>
 }
 
 export const useExpenseStore = create<AuthState>((set,get) => ({
@@ -176,7 +177,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
     }
   },
 
-  getCategorySummary: async () => {
+  getCategorySummary: async() => {
     set({ isLoading: true, error: null });
     try {
 
@@ -194,4 +195,31 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
       });
     }
   },
+
+  searchExpense: async(searchTerm) => {
+    set({isLoading:true,error:null});
+    try{
+
+        const response = await axios.get(`${API_URL}/searchExpense`,{
+          params:{
+            q:searchTerm,
+            page:1,
+            limit:100,
+            sortBy:"date",
+            order:"desc"
+          }
+        });
+
+        set({
+          expenses:response.data.expense,
+          isLoading:false
+        })
+
+    }catch(err){
+    set({
+      error: "Failed to search expenses",
+      isLoading: false,
+    });
+    }
+  }
 }));

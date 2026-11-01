@@ -259,35 +259,31 @@ export default function AllExpensesPage({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<NavItem>("All Expenses");
   const navigate = useNavigate()
-  const { getAllExpenses , expenses , isLoading , error:loadError } = useExpenseStore();
-  useEffect(()=>{
-    getAllExpenses();
-  },[getAllExpenses])
+  const { getAllExpenses , searchExpense , expenses , isLoading , error:loadError } = useExpenseStore();
+useEffect(() => {
+  const query = searchTerm.trim();
 
+  const timer = setTimeout(() => {
+    if (query.length >= 2) {
+      searchExpense(query);
+    } else {
+      getAllExpenses();
+    }
+  }, query.length >= 2 ? 400 : 0);
+
+  return () => clearTimeout(timer);
+
+}, [searchTerm, searchExpense, getAllExpenses]);
 
   // Filters expenses by search text and the selected category.
-  const filteredExpenses = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    return expenses.filter((expense) => {
-      const matchesCategory =
-        selectedCategory === "all" || expense.category === selectedCategory;
-
-      const searchableText = [
-        expense.title,
-        expense.note ?? "",
-        categoryLabels[expense.category],
-        paymentLabels[expense.paymentMethod ?? "other"],
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const matchesSearch =
-        normalizedSearch.length === 0 || searchableText.includes(normalizedSearch);
-
-      return matchesCategory && matchesSearch;
-    });
-  }, [expenses, searchTerm, selectedCategory]);
+const filteredExpenses = useMemo(() => {
+  return expenses.filter((expense) => {
+    return (
+      selectedCategory === "all" ||
+      expense.category === selectedCategory
+    );
+  });
+}, [expenses, selectedCategory]);
 
   // Build date groups after filtering, so each date header total reflects visible matching expenses.
   const dateGroups = useMemo(
