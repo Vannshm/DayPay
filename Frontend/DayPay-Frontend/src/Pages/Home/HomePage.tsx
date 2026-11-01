@@ -180,21 +180,25 @@ export default function HomePage({
   };
 
   // Handles sidebar selection; connect onNavigate to React Router navigation when routes are ready.
-  const handleNavigation = (item: NavItem) => {
-    setActiveNav(item);
+  const handleNavigation = (page: NavItem) => {
+    setActiveNav(page);
     setMobileNavOpen(false);
 
-    switch (item) {
+  switch (page) {
+    case "Dashboard":
+      navigate("/home");
+      break;
+
     case "Add Expense":
       navigate("/add-expense");
       break;
 
-    case "Dashboard":
-      navigate("/home");
-      break
-    }
+    case "All Expenses":
+      navigate("/all-expenses");
+      break;
+  }
 
-    onNavigate?.(item);
+    onNavigate?.(page);
   };
 
   // Handles the Add Expense button; connect this to your addExpense flow in authStore.

@@ -216,15 +216,19 @@ export default function AddExpensePage({
     setActiveNav(page);
     setMobileNavOpen(false);
 
-    switch (page) {
-      case "Dashboard":
-        navigate("/home");
-        break;
+  switch (page) {
+    case "Dashboard":
+      navigate("/home");
+      break;
 
-      case "Add Expense":
-        navigate("/add-expense");
-        break;
-    }
+    case "Add Expense":
+      navigate("/add-expense");
+      break;
+
+    case "All Expenses":
+      navigate("/all-expenses");
+      break;
+  }
   };
 
   // Delegates logout to the authentication store through the parent component.

@@ -30,6 +30,9 @@ import {
   Smartphone,
 } from "lucide-react";
 import "./AllExpensesPage.css";
+import { useNavigate } from "react-router-dom";
+import type { NavItem } from "../Home/NavItem";
+import { SideBar } from "../Home/SideBar";
 
 export type ExpenseCategory =
   | "food"
@@ -256,6 +259,8 @@ export default function AllExpensesPage({
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState<NavItem>("All Expenses");
+  const navigate = useNavigate()
 
   // Loads all expenses from the callback connected to your Zustand getAllExpense() function.
   useEffect(() => {
@@ -366,10 +371,24 @@ export default function AllExpensesPage({
   };
 
   // Handles sidebar navigation; route changes are owned by the parent component.
-  const handleNavigation = (page: PageName) => {
-    setMobileNavOpen(false);
-    if (page !== "All Expenses") onNavigate?.(page);
-  };
+const handleNavigation = (page: PageName) => {
+  setActiveNav(page);
+  setMobileNavOpen(false);
+
+  switch (page) {
+    case "Dashboard":
+      navigate("/home");
+      break;
+
+    case "Add Expense":
+      navigate("/add-expense");
+      break;
+
+    case "All Expenses":
+      navigate("/all-expenses");
+      break;
+  }
+};
 
   // Delegates logout to the authentication store through the parent component.
   const handleLogout = () => onLogout?.();
@@ -385,40 +404,13 @@ export default function AllExpensesPage({
         />
       )}
 
-      <aside className={`all-expenses-sidebar ${mobileNavOpen ? "is-open" : ""}`}>
-        <div className="all-expenses-brand">
-          <span><WalletCards size={29} strokeWidth={2.5} /></span>
-          <strong>DayPay</strong>
-          <button
-            className="all-sidebar-close"
-            type="button"
-            aria-label="Close menu"
-            onClick={() => setMobileNavOpen(false)}
-          >
-            <X size={19} />
-          </button>
-        </div>
-
-        <nav className="all-expenses-nav" aria-label="Main navigation">
-          {navItems.map(({ label, icon: Icon }) => (
-            <button
-              key={label}
-              type="button"
-              className={`all-nav-item ${label === "All Expenses" ? "active" : ""}`}
-              onClick={() => handleNavigation(label)}
-            >
-              <Icon size={19} strokeWidth={2} />
-              <span>{label}</span>
-              {label === "All Expenses" && <ChevronRight className="all-nav-chevron" size={16} />}
-            </button>
-          ))}
-        </nav>
-
-        <button className="all-expenses-logout" type="button" onClick={handleLogout}>
-          <LogOut size={19} />
-          <span>Logout</span>
-        </button>
-      </aside>
+      <SideBar
+        activeNav={activeNav}
+        mobileNavOpen={mobileNavOpen}
+        setMobileNavOpen={setMobileNavOpen}
+        handleNavigation={handleNavigation}
+        handleLogout={handleLogout}
+      />
 
       <section className="all-expenses-main">
         <header className="all-expenses-topbar">
