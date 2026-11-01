@@ -14,6 +14,7 @@ interface AuthState {
 
   signup: (name: string, email: string, password: string) => Promise<void>;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
 
@@ -69,6 +70,27 @@ export const useAuthStore = create<AuthState>((set) => ({
       const message = axios.isAxiosError(err)
         ? err.response?.data?.message || "Error logging in"
         : "Error logging in";
+
+      set({ error: message, isLoading: false });
+      throw err;
+    }
+  },
+
+  logout: async() => {
+    set({isLoading:true,error:null});
+    try{
+
+      await axios.post(`${API_URL}/user-logout`);
+      set({
+      username: null,
+      isAuthenticated: false,
+      isLoading: false,
+      })
+
+    }catch(err){
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || "Error Logout up"
+        : "Error Logout up";
 
       set({ error: message, isLoading: false });
       throw err;

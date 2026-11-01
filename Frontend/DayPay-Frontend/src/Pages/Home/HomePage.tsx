@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useExpenseStore } from "../expenseStore";
+import { useAuthStore } from "../authStore";
 import type { ExpenseCategory, PaymentMethod } from "../expenseStore";
 import {
   Wallet,
@@ -29,9 +30,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
-import { SideBar } from './SideBar'
-import { Header } from './Header'
-import type { NavItem } from './NavItem'
+import { SideBar } from "./SideBar";
+import { Header } from "./Header";
+import type { NavItem } from "./NavItem";
 
 type HomePageProps = {
   // TODO(authStore): Connect this to addExpense(), or open your Add Expense form/modal.
@@ -83,7 +84,6 @@ const categoryColors: Record<ExpenseCategory, string> = {
   other: "#A0A8B5",
 };
 
-
 // Converts the backend paymentMethod enum into a readable label for the dashboard table.
 const paymentMethodLabels: Record<PaymentMethod, string> = {
   cash: "Cash",
@@ -124,6 +124,7 @@ export default function HomePage({
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuthStore();
   const {
     expenses,
     isLoading,
@@ -134,7 +135,7 @@ export default function HomePage({
     deleteExpense,
     getCategorySummary,
     categorySummary,
-    topExpense
+    topExpense,
   } = useExpenseStore();
   useEffect(() => {
     getAllExpenses();
@@ -143,29 +144,30 @@ export default function HomePage({
   }, [getAllExpenses, dashboard, getCategorySummary]);
   const recentExpenses = expenses.slice(0, 5);
 
-    const formatDate = (date: string) =>
+  const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
 
-    const totalCategorySpending = categorySummary.reduce((total,category)=> total+category.totalSpending,0)
+  const totalCategorySpending = categorySummary.reduce(
+    (total, category) => total + category.totalSpending,
+    0,
+  );
 
-    const categoryData: {
-  name: ExpenseCategory;
-  percent: number;
-  color: string;
-}[] = categorySummary.map((category)=>({
-  name: category._id,
-  percent: 
-  totalCategorySpending > 0 
-  ? Math.round(
-    (category.totalSpending/totalCategorySpending)*100
-  )
-  : 0,
-  color: categoryColors[category._id]
-}));
+  const categoryData: {
+    name: ExpenseCategory;
+    percent: number;
+    color: string;
+  }[] = categorySummary.map((category) => ({
+    name: category._id,
+    percent:
+      totalCategorySpending > 0
+        ? Math.round((category.totalSpending / totalCategorySpending) * 100)
+        : 0,
+    color: categoryColors[category._id],
+  }));
 
   // TODO(authStore): Read the logged-in user's username from useAuthStore().
   const displayName = "Vansh";
@@ -184,19 +186,19 @@ export default function HomePage({
     setActiveNav(page);
     setMobileNavOpen(false);
 
-  switch (page) {
-    case "Dashboard":
-      navigate("/home");
-      break;
+    switch (page) {
+      case "Dashboard":
+        navigate("/home");
+        break;
 
-    case "Add Expense":
-      navigate("/add-expense");
-      break;
+      case "Add Expense":
+        navigate("/add-expense");
+        break;
 
-    case "All Expenses":
-      navigate("/all-expenses");
-      break;
-  }
+      case "All Expenses":
+        navigate("/all-expenses");
+        break;
+    }
 
     onNavigate?.(page);
   };
@@ -222,8 +224,9 @@ export default function HomePage({
   };
 
   // Handles logout; connect this to logout() from your Zustand auth store.
-  const handleLogout = () => {
-    onLogout?.();
+  const handleLogout = async () => {
+    await logout();
+    navigate("/signup");
   };
 
   const maxMonthlyAmount = Math.max(...monthlyData.map((item) => item.amount));
@@ -239,18 +242,22 @@ export default function HomePage({
         />
       )}
 
-      <SideBar activeNav={activeNav}
-      mobileNavOpen={mobileNavOpen}
-      setMobileNavOpen={setMobileNavOpen}
-      handleNavigation={handleNavigation}
-      handleLogout={handleLogout} />
+      <SideBar
+        activeNav={activeNav}
+        mobileNavOpen={mobileNavOpen}
+        setMobileNavOpen={setMobileNavOpen}
+        handleNavigation={handleNavigation}
+        handleLogout={handleLogout}
+      />
 
       <section className="dashboard-main">
-        <Header setMobileNavOpen={setMobileNavOpen}
-        displayName={displayName}
-        profileOpen={profileOpen}
-        setProfileOpen={setProfileOpen}
-        handleLogout={handleLogout}/>
+        <Header
+          setMobileNavOpen={setMobileNavOpen}
+          displayName={displayName}
+          profileOpen={profileOpen}
+          setProfileOpen={setProfileOpen}
+          handleLogout={handleLogout}
+        />
 
         <div className="dashboard-content">
           <section
@@ -370,14 +377,21 @@ export default function HomePage({
                   role="img"
                   aria-label="Category spending breakdown"
                   style={{
-                    background: `conic-gradient(${categoryData
-                      .map((item, index) => {
-                        const start = categoryData
-                          .slice(0, index)
-                          .reduce((sum, category) => sum + category.percent, 0);
-                        return `${item.color} ${start}% ${start + item.percent}%`;
-                      })
-                      .join(", ")})`,
+                    background:
+                      categoryData.length > 0
+                        ? `conic-gradient(${categoryData
+                            .map((item, index) => {
+                              const start = categoryData
+                                .slice(0, index)
+                                .reduce(
+                                  (sum, category) => sum + category.percent,
+                                  0,
+                                );
+
+                              return `${item.color} ${start}% ${start + item.percent}%`;
+                            })
+                            .join(", ")})`
+                        : "#E5E7EB",
                   }}
                 >
                   <div className="donut-center">
@@ -388,16 +402,22 @@ export default function HomePage({
                   </div>
                 </div>
                 <div className="category-legend">
-                  {categoryData.map((category) => (
-                    <div className="legend-row" key={category.name}>
-                      <span
-                        className="legend-dot"
-                        style={{ backgroundColor: category.color }}
-                      />
-                      <span className="legend-name">{category.name}</span>
-                      <strong>{category.percent}%</strong>
-                    </div>
-                  ))}
+                  {categoryData.length === 0 ? (
+                    <p className="category-empty">
+                      No category data yet. Add your first expense!
+                    </p>
+                  ) : (
+                    categoryData.map((category) => (
+                      <div className="legend-row" key={category.name}>
+                        <span
+                          className="legend-dot"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        <span className="legend-name">{category.name}</span>
+                        <strong>{category.percent}%</strong>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </article>
@@ -433,7 +453,9 @@ export default function HomePage({
 
                       return (
                         <tr key={expense._id}>
-                          <td className="expense-date">{formatDate(expense.date)}</td>
+                          <td className="expense-date">
+                            {formatDate(expense.date)}
+                          </td>
 
                           <td className="expense-description-cell">
                             <span className="expense-description">

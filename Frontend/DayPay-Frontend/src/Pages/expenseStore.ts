@@ -181,7 +181,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
     set({ isLoading: true, error: null });
     try {
 
-      const response = await axios(`${API_URL}/categorySpending`);
+      const response = await axios.get(`${API_URL}/categorySpending`);
       set({
         categorySummary: response.data.summary,
         topExpense: response.data.summary[0] ?? null,
@@ -221,5 +221,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
       isLoading: false,
     });
     }
-  }
+  },
+
+  
 }));
