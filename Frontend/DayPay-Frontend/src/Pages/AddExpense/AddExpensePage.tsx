@@ -30,7 +30,6 @@ import {
   Landmark,
 } from "lucide-react";
 import { SideBar } from "../Home/SideBar";
-import { Header } from "../Home/Header";
 import type { NavItem } from "../Home/NavItem";
 import { useNavigate } from "react-router-dom";
 import "./AddExpensePage.css";
@@ -39,6 +38,7 @@ import {
   type ExpenseCategory,
   type PaymentMethod,
 } from "../expenseStore";
+import { RowMenuBar } from "../AllExpenses/RowMenuBar";
 
 type ExpensePayload = {
   title: string;
@@ -128,12 +128,19 @@ export default function AddExpensePage({
   const [formSuccess, setFormSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [activeNav, setActiveNav] = useState<NavItem>("Add Expense");
   const navigate = useNavigate();
   // const [profileOpen, setProfileOpen] = useState(false);
   // const displayName = username;
-  const { addExpense, getAllExpenses, expenses, isLoading, error } =
-    useExpenseStore();
+  const {
+    addExpense,
+    getAllExpenses,
+    expenses,
+    isLoading,
+    error,
+    deleteExpense,
+  } = useExpenseStore();
   useEffect(() => {
     getAllExpenses();
   }, [getAllExpenses]);
@@ -166,12 +173,19 @@ export default function AddExpensePage({
     setFormSuccess("");
   };
 
+  const handleEdit = () => {
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteExpense = async (expenseId: string) => {
+    await deleteExpense(expenseId);
+  };
+
   // Validates the form, converts amount to a number, and calls the future Zustand addExpense action.
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError("");
     setFormSuccess("");
-
 
     if (!values.title.trim()) {
       setFormError("Please enter an expense title.");
@@ -217,19 +231,27 @@ export default function AddExpensePage({
     setActiveNav(page);
     setMobileNavOpen(false);
 
-  switch (page) {
-    case "Dashboard":
-      navigate("/home");
-      break;
+    switch (page) {
+      case "Dashboard":
+        navigate("/home");
+        break;
 
-    case "Add Expense":
-      navigate("/add-expense");
-      break;
+      case "Add Expense":
+        navigate("/add-expense");
+        break;
 
-    case "All Expenses":
-      navigate("/all-expenses");
-      break;
-  }
+      case "All Expenses":
+        navigate("/all-expenses");
+        break;
+
+      case "Categories":
+        navigate("/categories");
+        break;
+
+      case "Reports":
+        navigate("/reports");
+        break;
+    }
   };
 
   // Delegates logout to the authentication store through the parent component.
@@ -496,14 +518,13 @@ export default function AddExpensePage({
                         <strong className="recent-expense-amount">
                           − {formatCurrency(expense.amount)}
                         </strong>
-                        <button
-                          className="recent-more-button"
-                          type="button"
-                          aria-label={`More options for ${categoryLabels[expense.category]}`}
-                          title="More options"
-                        >
-                          <Ellipsis size={19} />
-                        </button>
+                        <RowMenuBar
+                          expense={expense}
+                          openMenuId={openMenuId}
+                          setOpenMenuId={setOpenMenuId}
+                          handleEdit={handleEdit}
+                          handleDeleteExpense={handleDeleteExpense}
+                        />
                       </div>
                     );
                   })}

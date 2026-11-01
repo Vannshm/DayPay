@@ -34,6 +34,7 @@ import { useExpenseStore } from "../expenseStore";
 import { useNavigate } from "react-router-dom";
 import type { NavItem } from "../Home/NavItem";
 import { SideBar } from "../Home/SideBar";
+import { RowMenuBar } from "./RowMenuBar";
 
 export type ExpenseCategory =
   | "food"
@@ -128,55 +129,6 @@ const paymentLabels: Record<PaymentMethod, string> = {
   bank_transfer: "Bank transfer",
   other: "Other",
 };
-
-// SAMPLE DATA: Used only until you connect the getAllExpense() action from authStore.
-const sampleExpenses: ExpenseRecord[] = [
-  {
-    _id: "sample-1",
-    title: "Food",
-    amount: 450,
-    category: "food",
-    date: "2026-08-25T14:30:00",
-    note: "Lunch at restaurant",
-    paymentMethod: "upi",
-  },
-  {
-    _id: "sample-2",
-    title: "Transport",
-    amount: 400,
-    category: "transport",
-    date: "2026-08-25T10:15:00",
-    note: "Bus fare",
-    paymentMethod: "cash",
-  },
-  {
-    _id: "sample-3",
-    title: "Shopping",
-    amount: 720,
-    category: "shopping",
-    date: "2026-05-10T18:20:00",
-    note: "Bought some essentials",
-    paymentMethod: "card",
-  },
-  {
-    _id: "sample-4",
-    title: "Bills",
-    amount: 1200,
-    category: "bills",
-    date: "2026-03-02T09:00:00",
-    note: "Electricity bill",
-    paymentMethod: "upi",
-  },
-  {
-    _id: "sample-5",
-    title: "Education",
-    amount: 850,
-    category: "education",
-    date: "2026-02-18T16:45:00",
-    note: "Course material",
-    paymentMethod: "bank_transfer",
-  },
-];
 
 // Formats numbers as Indian rupees.
 const formatCurrency = (amount: number) =>
@@ -367,6 +319,14 @@ export default function AllExpensesPage({
       case "All Expenses":
         navigate("/all-expenses");
         break;
+
+      case "Categories":
+        navigate("/categories");
+        break;
+
+      case "Reports":
+        navigate("/reports");
+        break;
     }
   };
 
@@ -524,40 +484,13 @@ export default function AllExpensesPage({
                               {formatExpenseTime(expense.date)}
                             </time>
 
-                            <div className="all-row-menu-wrap">
-                              <button
-                                className="all-row-menu-button"
-                                type="button"
-                                aria-label={`Actions for ${expense.title}`}
-                                aria-expanded={openMenuId === expense._id}
-                                onClick={() =>
-                                  setOpenMenuId((current) =>
-                                    current === expense._id
-                                      ? null
-                                      : expense._id,
-                                  )
-                                }
-                              >
-                                <EllipsisVertical size={20} />
-                              </button>
-
-                              {openMenuId === expense._id && (
-                                <div className="all-row-menu">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleEdit(expense)}
-                                  >
-                                    <Pencil size={14} /> Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteExpense(expense._id)}
-                                  >
-                                    <Trash2 size={14} /> Delete
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                            <RowMenuBar
+                              expense={expense}
+                              openMenuId={openMenuId}
+                              setOpenMenuId={setOpenMenuId}
+                              handleEdit={handleEdit}
+                              handleDeleteExpense={handleDeleteExpense}
+                            />
                           </div>
                         );
                       })}

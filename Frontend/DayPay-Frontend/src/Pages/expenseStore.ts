@@ -49,6 +49,8 @@ interface AuthState {
   summary: DashboardSummary | null;
   expenses: Expense[];
 
+  isSummaryLoading: boolean;
+
   categorySummary: CategorySpending[];
   topExpense: CategorySpending | null;
 
@@ -74,6 +76,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
   expenses: [],
   summary: null,
   categorySummary:[],
+  isSummaryLoading:false,
   topExpense: null,
 
   getAllExpenses: async () => {
@@ -178,20 +181,20 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
   },
 
   getCategorySummary: async() => {
-    set({ isLoading: true, error: null });
+    set({ isSummaryLoading: true, error: null });
     try {
 
       const response = await axios.get(`${API_URL}/categorySpending`);
       set({
         categorySummary: response.data.summary,
         topExpense: response.data.summary[0] ?? null,
-        isLoading:false
+        isSummaryLoading:false
       })
 
     } catch (err) {
       set({
         error: "Failed to add expenses",
-        isLoading: false,
+        isSummaryLoading: false,
       });
     }
   },

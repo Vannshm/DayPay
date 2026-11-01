@@ -5,6 +5,8 @@ import LoginPage from './Pages/Login/LoginPage'
 import HomePage from './Pages/Home/HomePage'
 import AddExpensePage from './Pages/AddExpense/AddExpensePage'
 import AllExpensesPage from './Pages/AllExpenses/AllExpensesPage'
+import CategoryPage from './Pages/Categories/ComingSoonPage';
+import ReportPage from './Pages/Reports/ComingSoonPage';
 import { useEffect } from 'react';
 
 function App() {
@@ -26,6 +28,8 @@ function App() {
       <Route path='/home' element={<HomePage/> }/>
       <Route path='/add-expense' element={<AddExpensePage/> }/>
       <Route path='/all-expenses' element={<AllExpensesPage/> }/>
+      <Route path='/categories' element={<CategoryPage/> }/>
+      <Route path='/reports' element={<ReportPage/> }/>
     </Routes>
     </>
   );

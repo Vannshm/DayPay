@@ -34,7 +34,7 @@ import { SideBar } from "./SideBar";
 import { Header } from "./Header";
 import type { NavItem } from "./NavItem";
 
-type HomePageProps = {
+export type HomePageProps = {
   // TODO(authStore): Connect this to addExpense(), or open your Add Expense form/modal.
   onAddExpense?: () => void;
   // TODO(authStore): Connect this to deleteExpense(expenseId).
@@ -198,6 +198,15 @@ export default function HomePage({
       case "All Expenses":
         navigate("/all-expenses");
         break;
+
+      case "Categories":
+        navigate("/categories");
+        break;
+        
+      case "Reports":
+        navigate("/reports");
+        break;
+
     }
 
     onNavigate?.(page);
