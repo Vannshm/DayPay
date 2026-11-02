@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api/auth";
+const API_URL = "https://daypay-rso8.onrender.com";
 
 axios.defaults.withCredentials = true;
 
@@ -29,7 +29,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   signup: async (username, email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/user-register`, {
+      const response = await axios.post(`${API_URL}/api/auth/user-register`, {
         username,
         email,
         password,
@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         ? { email: usernameOrEmail, password }
         : { username: usernameOrEmail, password };
 
-      const response = await axios.post(`${API_URL}/user-login`, credentials);
+      const response = await axios.post(`${API_URL}/api/auth/user-login`, credentials);
 
       set({
         username: response.data.user.username,
@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({isLoading:true,error:null});
     try{
 
-      await axios.post(`${API_URL}/user-logout`);
+      await axios.post(`${API_URL}/api/auth/user-logout`);
       set({
       username: null,
       isAuthenticated: false,
@@ -101,7 +101,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isCheckingAuth: true });
 
     try {
-      const response = await axios.get(`${API_URL}/get-Profile`);
+      const response = await axios.get(`${API_URL}/api/auth/get-Profile`);
 
       set({
         username: response.data.user.username,

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api/expense";
+const API_URL = "https://daypay-rso8.onrender.com";
 
 axios.defaults.withCredentials = true;
 
@@ -82,7 +82,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
   getAllExpenses: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios(`${API_URL}/allExpenses`);
+      const response = await axios(`${API_URL}/api/expense/allExpenses`);
       set({
         expenses: response.data.expenses,
         isLoading: false,
@@ -98,7 +98,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
   dashboard: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios(`${API_URL}/dashboard`);
+      const response = await axios(`${API_URL}/api/expense/dashboard`);
       set({
         summary: response.data,
         isLoading: false,
@@ -114,7 +114,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
   deleteExpense: async (expenseId: string) => {
     set({ isDeleting: true, error: null });
     try {
-      await axios.delete(`${API_URL}/deleteExpense/${expenseId}`);
+      await axios.delete(`${API_URL}/api/expense/deleteExpense/${expenseId}`);
 
       set((state) => {
         const deleteExpense = state.expenses.find(
@@ -152,7 +152,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
   addExpense: async (title, amount, category, date, note, paymentMethod) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/addExpense`, {
+      const response = await axios.post(`${API_URL}/api/expense/addExpense`, {
         title,
         amount,
         category,
@@ -184,7 +184,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
     set({ isSummaryLoading: true, error: null });
     try {
 
-      const response = await axios.get(`${API_URL}/categorySpending`);
+      const response = await axios.get(`${API_URL}/api/expense/categorySpending`);
       set({
         categorySummary: response.data.summary,
         topExpense: response.data.summary[0] ?? null,
@@ -203,7 +203,7 @@ export const useExpenseStore = create<AuthState>((set,get) => ({
     set({isLoading:true,error:null});
     try{
 
-        const response = await axios.get(`${API_URL}/searchExpense`,{
+        const response = await axios.get(`${API_URL}/api/expense/searchExpense`,{
           params:{
             q:searchTerm,
             page:1,
