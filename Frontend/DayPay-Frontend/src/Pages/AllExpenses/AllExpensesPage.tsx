@@ -481,7 +481,7 @@ export default function AllExpensesPage({
                               dateTime={expense.date}
                             >
                               <Clock3 size={15} />
-                              {formatExpenseTime(expense.date)}
+                              {/* {formatExpenseTime(expense.date)} */}
                             </time>
 
                             <RowMenuBar

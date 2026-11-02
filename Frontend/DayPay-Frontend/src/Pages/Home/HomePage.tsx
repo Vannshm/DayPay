@@ -219,7 +219,7 @@ export default function HomePage({
 
   // Handles the View All action; connect this to getAllExpense() or your expenses route.
   const handleViewAllExpenses = () => {
-    onViewAllExpenses?.();
+    navigate("/all-expenses")
   };
 
   // Handles editing a row; pass the selected expense ID to your editExpense flow.

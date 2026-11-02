@@ -3,6 +3,8 @@ import { ConnectDb } from './src/DB/db.js'
 
 ConnectDb()
 
-app.listen(3000,()=>{
+const port = process.env.PORT || 3000
+
+app.listen(`${port}`,()=>{
   console.log('Server is Listening at port: 3000')
 })
